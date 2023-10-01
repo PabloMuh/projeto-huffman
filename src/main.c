@@ -8,7 +8,6 @@
 int main() {
     FILE *archive;
     char file_path[MAX]; // Array que armazena o nome do arquivo
-    char **dictionary;
     int currentSize = 0;
     printf("Digite o caminho da pasta do arquivo: ");
     scanf("%s", file_path);
@@ -18,7 +17,7 @@ int main() {
 
     // Abre o arquivo para leitura
     archive = fopen(file_path, "rb");
-    FILE *archiveOut = fopen("compress.txt","wb");
+    FILE *archiveOut = fopen("compress.txt","w");
     if (archiveOut == NULL)
     {
         perror("Erro ao abrir o arquivo");
@@ -56,19 +55,20 @@ int main() {
     printList(list_frequency);
     
     huffmanTree(&list_frequency,&currentSize);
+    BitHuff bithuff,table[256];
+    bithuff.bitH = 0;
+    bithuff.size = 0;
+    memset(table,0,sizeof(BitHuff) * 256);
+    build_table(list_frequency,table,bithuff);
+    //print(table,frequency);
+    printf("%d\n",trashsize(frequency,table));
     printPreOrder(list_frequency);
-    // Liberar a memoria
-    printf("\ntotal de nós: %d\n",treeSize(list_frequency));
-    dictionary = createDictionary(treeDeep(list_frequency));
-    generateDicionationary(dictionary,list_frequency,"",treeDeep(list_frequency));
-    printDictionary(dictionary);
-    printf("%d\n",trashsize(dictionary,frequency));
-    // Fecha o arquivo
-    setFirstByte(archiveOut,trashsize(dictionary,frequency),treeSize(list_frequency));
+    setFirstByte(archiveOut,trashsize(frequency,table),treeSize(list_frequency));
     setSecondByte(archiveOut,treeSize(list_frequency));
     setTree(archiveOut,list_frequency);
-    printBytes(archive,archiveOut,dictionary,treeDeep(list_frequency) + 1);
-    deleteList(list_frequency);
+    fseek(archive, 0, SEEK_SET);
+    printBytes(archive,archiveOut,table,trashsize(frequency,table));
+    //deleteList(list_frequency);
     fclose(archive);
     fclose(archiveOut);
     // Exibir a lista encadeada
